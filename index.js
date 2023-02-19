@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const e = require('express');
 const app = express()
@@ -18,6 +18,9 @@ const run = async () => {
         const all_post = client.db('friends-media').collection('all-user-post');
         const get_all_post = client.db('friends-media').collection('all-user-post');
         const userlist = client.db('friends-media').collection('user-list');
+        const comment = client.db('friends-media').collection('comment')
+        const userComent = client.db('friends-media').collection('comment')
+        const userInformation = client.db('friends-media').collection('user-information')
 
         app.post('/post', async (req, res) => {
             const post = req.body;
@@ -43,12 +46,67 @@ const run = async () => {
             console.log(email)
             const result = await userlist.find(query).toArray()
             res.send(result)
-            console.log(result)
+
         })
 
-        // user post query by email
+        app.post('/comment', async (req, res) => {
+            const Postcomment = req.body;
+            const result = await comment.insertOne(Postcomment)
+            res.send(result)
+        })
+        app.get('/comment', async (req, res) => {
+            const comment = req.query.id;
+            const query = { post_id: comment }
+            const result = await userComent.find(query).toArray()
+            res.send(result)
+        })
+
+        app.post('/user-information', async (req, res) => {
+            const info = req.body;
+            const result = await userInformation.insertOne(info)
+            res.send(result)
+        })
+        app.get('/information', async (req, res) => {
+            const email = req.query.email;
+            const query = { user_email: email }
+            const result = await userInformation.findOne(query)
+            res.send(result)
+
+        })
+        app.get('/information', async (req, res) => {
+            const email = req.query.email;
+            const query = { user_email: email }
+            const result = await userInformation.findOne(query)
+            res.send(result)
+
+        })
+        app.get('/update-info/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await userInformation.findOne(query);
+
+            res.send(result)
+        })
+        app.put('/update-info/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id)
+            const query = { _id: new ObjectId(id) };
+            const user = req.body;
+            const option = { upsert: true }
+            const updatefeild = {
+                $set: {
+                    name: user.name,
+                    address: user.address,
+                    email: user.email,
+                    university: user.university
+                }
+            }
+            const result = await userInformation.updateOne(query, updatefeild, option)
+            res.send(result)
+         
 
 
+        })
 
     }
     finally {
